@@ -13,10 +13,17 @@ select { padding:5px; font-size:16px; margin:0 4px; }
 button { background:#2a9d8f; color:#fff; border:none; padding:12px 20px; border-radius:8px; font-size:16px; cursor:pointer; margin-top:15px; }
 button:hover { background:#21867a; }
 #result { margin-top:20px; padding:15px; background:#fff3cd; border-radius:10px; display:none; text-align:left; white-space:pre-wrap; }
+#loginDiv { margin-bottom:20px; }
 </style>
 </head>
 <body>
 <h1>कारक प्रश्नावली</h1>
+
+<div id="loginDiv">
+  <input type="password" id="teacherPass" placeholder="Enter teacher password">
+  <button onclick="loginTeacher()">Login as Teacher</button>
+</div>
+
 <div id="scoreBoard">आपका स्कोर यहाँ दिखेगा</div>
 <div id="quiz"></div>
 <button onclick="submitQuiz()">जमा करें</button>
@@ -24,68 +31,78 @@ button:hover { background:#21867a; }
 
 <script>
 const options = ["ने","के","की","से","को","में","का","पर","हे","अरे","वाह"];
+const teacherPassword = "teacher123";
+let teacherMode = false;
 
+// Sample questions (replace with full 20)
 const questions = [
   { text:"राम ______ पिता ______ मृत्यु हो गई।", eng:"Ram's father passed away.", answers:["के","की"], explanation:"राम के पिता, पिता की मृत्यु - संबंध कारक।" },
-  { text:"चोर ______ हथौड़े ______ ताला तोड़ा।", eng:"The thief broke the lock with a hammer.", answers:["ने","से"], explanation:"चोर ने - कर्ता। हथौड़े से - करण कारक।" },
+  { text:"चोर ______ हथौड़े ______ ताला तोड़ा।", eng:"The thief broke the lock with a hammer.", answers:["ने","से"], explanation:"चोर ने - कर्ता कारक। हथौड़े से - करण कारक।" },
   { text:"बीना ______ सोने ______ चूड़ियाँ चोरी हो गईं।", eng:"Bina's gold bangles were stolen.", answers:["की","की"], explanation:"बीना की और सोने की - संबंध कारक।" }
 ];
 
-function shuffle(array) {
-  for (let i=array.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [array[i],array[j]] = [array[j], array[i]];
-  }
+function shuffle(array){ for(let i=array.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [array[i],array[j]]=[array[j],array[i]]; } }
+
+function loginTeacher(){
+  const pass = document.getElementById("teacherPass").value;
+  if(pass === teacherPassword){
+    teacherMode = true;
+    alert("Teacher mode enabled! You can now see correct answers after submission.");
+    document.getElementById("loginDiv").style.display="none";
+  } else { alert("Incorrect password!"); }
+  loadQuiz();
 }
 
 function loadQuiz(){
   shuffle(questions);
-  const quizDiv = document.getElementById("quiz");
-  quizDiv.innerHTML = "";
+  const quizDiv=document.getElementById("quiz");
+  quizDiv.innerHTML="";
   questions.forEach((q,i)=>{
-    let parts = q.text.split("______");
-    let html = `<p><b>${i+1}.</b> `;
-    parts.forEach((part, idx)=>{
-      html += part;
-      if(idx < q.answers.length){
-        html += `<select id="q${i}_${idx}"><option value="">-- चुनें --</option>${options.map(o=>`<option value="${o}">${o}</option>`).join("")}</select>`;
+    let parts=q.text.split("______");
+    let html=`<p><b>${i+1}.</b> `;
+    parts.forEach((part,idx)=>{
+      html+=part;
+      if(idx<q.answers.length){
+        html+=` <select id="q${i}_${idx}"><option value="">-- चुनें --</option>${options.map(o=>`<option value="${o}">${o}</option>`).join("")}</select>`;
+        if(teacherMode){ html+=` <span style="color:green">(${q.answers[idx]})</span>`; } // show correct answer in teacher mode
       }
     });
-    html += `</p><p style="color:#555">(${q.eng})</p>`;
-    const div = document.createElement("div");
-    div.className = "question";
-    div.innerHTML = html;
+    html+=`</p><p style='color:#555'>(${q.eng})</p>`;
+    let div=document.createElement("div");
+    div.className="question";
+    div.innerHTML=html;
     quizDiv.appendChild(div);
   });
-  document.getElementById("scoreBoard").innerText = "आपका स्कोर यहाँ दिखेगा";
-  document.getElementById("result").style.display = "none";
+  document.getElementById("scoreBoard").innerText="आपका स्कोर यहाँ दिखेगा";
+  document.getElementById("result").style.display="none";
 }
 
 function submitQuiz(){
   let score=0, wrongQuestions=[], report="";
   questions.forEach((q,i)=>{
-    let userAns = [];
-    let correct = true;
-    q.answers.forEach((ans, idx)=>{
-      let val = document.getElementById(`q${i}_${idx}`)?.value || "कोई नहीं";
+    let userAns=[], correct=true;
+    q.answers.forEach((ans,idx)=>{
+      let val=document.getElementById(`q${i}_${idx}`)?.value || "कोई नहीं";
       userAns.push(val);
-      if(val !== ans) correct = false;
+      if(val!==ans) correct=false;
     });
-    if(correct) score++;
-    else wrongQuestions.push(i+1);
-    report += `${i+1}. ${q.text}\nYour Answer: ${userAns.join(", ")}\nCorrect Answer: ${q.answers.join(", ")}\nExplanation: ${q.explanation}\n\n`;
+    if(correct) score++; else wrongQuestions.push(i+1);
+    report+=`${i+1}. ${q.text}\nYour Answer: ${userAns.join(", ")}\n`;
+    if(teacherMode){ report += `Correct Answer: ${q.answers.join(", ")}\nExplanation: ${q.explanation}\n\n`; }
   });
-  const incorrect = questions.length - score;
-  document.getElementById("scoreBoard").innerText = `Score: ${score}/${questions.length} (Correct: ${score}, Incorrect: ${incorrect})`;
-  const resultDiv = document.getElementById("result");
-  resultDiv.style.display = "block";
-  resultDiv.innerText = `Full Summary:\n\n${report}\nWrong Questions: ${wrongQuestions.join(", ")}`;
 
-  // Mobile mail only
-  const email = "malini22venugopal@gmail.com";
-  const subject = "Quiz Score";
-  const body = `Correct: ${score}, Incorrect: ${incorrect}`;
-  window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const incorrect=questions.length-score;
+  document.getElementById("scoreBoard").innerText=`Score: ${score}/${questions.length} (Correct: ${score}, Incorrect: ${incorrect})`;
+
+  const resultDiv=document.getElementById("result");
+  resultDiv.style.display="block";
+  resultDiv.innerText=`Full Summary:\n\n${report}\nWrong Questions: ${wrongQuestions.join(", ")}`;
+
+  // Send minimal report via email
+  const email="malini22venugopal@gmail.com";
+  const subject="Quiz Score";
+  const body=`Correct: ${score}, Incorrect: ${incorrect}`;
+  window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 loadQuiz();
