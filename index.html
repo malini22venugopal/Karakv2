@@ -1,95 +1,108 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>कारक प्रश्नावली1</title>
-<style>
-body { font-family:'Noto Sans Devanagari',Arial,sans-serif; background:#f4f9ff; padding:20px; text-align:center; }
-h1 { color:#2a4d69; }
-#scoreBoard { font-size:20px; margin:15px 0; font-weight:bold; color:#d35400; }
-.question { background:#fff; border-radius:10px; padding:15px; margin:10px auto; box-shadow:0 4px 8px rgba(0,0,0,0.1); max-width:650px; text-align:left; }
-select { padding:5px; font-size:16px; margin:0 4px; }
-button { background:#2a9d8f; color:#fff; border:none; padding:12px 20px; border-radius:8px; font-size:16px; cursor:pointer; margin-top:15px; }
-button:hover { background:#21867a; }
-#result { margin-top:20px; padding:15px; background:#fff3cd; border-radius:10px; display:none; text-align:left; white-space:pre-wrap; }
-.star,.clap,.angry { position:fixed; font-size:24px; pointer-events:none; animation:float 6s linear forwards; }
-.star { color:gold; } .clap { color:orange; } .angry { color:red; }
-@keyframes float { from{transform:translate(0,0) rotate(0deg);opacity:1;} to{transform:translate(var(--x),var(--y)) rotate(720deg);opacity:0;} }
-#modeSelect,#passwordDiv { margin:20px auto; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>कारक प्रश्नावली</title>
+  <style>
+    body {
+      font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+      background: #f4f9ff;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 { color: #2a4d69; }
+    #scoreBoard {
+      font-size: 20px;
+      margin: 15px 0;
+      font-weight: bold;
+      color: #d35400;
+    }
+    .question {
+      background: #fff;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 10px auto;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      max-width: 650px;
+      text-align: left;
+    }
+    select {
+      padding: 5px;
+      font-size: 16px;
+      margin: 0 4px;
+    }
+    button {
+      background: #2a9d8f;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+    button:hover { background: #21867a; }
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #fff3cd;
+      border-radius: 10px;
+      display: none;
+      text-align: left;
+      white-space: pre-wrap;
+    }
+    .star {
+      position: fixed;
+      color: gold;
+      font-size: 24px;
+      pointer-events: none;
+      animation: floatStar 6s linear forwards;
+    }
+    @keyframes floatStar {
+      from { transform: translate(0,0) rotate(0deg); opacity: 1; }
+      to { transform: translate(var(--x), var(--y)) rotate(720deg); opacity: 0; }
+    }
+  </style>
 </head>
 <body>
-<h1>कारक प्रश्नावली</h1>
-
-<div id="modeSelect">
-  <button onclick="selectMode('student')">Student Mode</button>
-  <button onclick="selectMode('teacher')">Teacher Mode</button>
-</div>
-
-<div id="passwordDiv" style="display:none;">
-  Enter Teacher Password: <input type="password" id="passwordInput">
-  <button onclick="checkPassword()">Submit</button>
-</div>
-
-<div id="quizDiv" style="display:none;">
+  <h1>कारक प्रश्नावली</h1>
   <div id="scoreBoard">आपका स्कोर यहाँ दिखेगा</div>
   <div id="quiz"></div>
   <button onclick="submitQuiz()">जमा करें</button>
   <div id="result"></div>
-  <button onclick="sendEmail()" id="emailBtn" style="margin-top:10px;">Send Score & Report to Mail</button>
-</div>
 
 <script>
-let teacherMode=false;
+const options = ["ने","के","की","से","को","में","का","पर","हे","अरे","वाह"];
 
-const options=["ने","के","की","से","को","में","का","पर","हे","अरे","वाह"];
-
-let questions=[
-{ text:"राम ______ पिता ______ मृत्यु हो गई।", eng:"Ram's father passed away.", answers:["के","की"], explanation:"राम के पिता (Ram's father), पिता की मृत्यु (father's death). Both show possession (संबंध कारक)." },
-{ text:"चोर ______ हथौड़े ______ ताला तोड़ा।", eng:"The thief broke the lock with a hammer.", answers:["ने","से"], explanation:"चोर ने (The thief) - doer. हथौड़े से (with hammer) - instrument (करण)." },
-{ text:"बीना ______ सोने ______ चूड़ियाँ चोरी हो गईं।", eng:"Bina's gold bangles were stolen.", answers:["की","की"], explanation:"बीना की चूड़ियाँ, सोने की चूड़ियाँ. Both show possession (संबंध)." },
-{ text:"राहुल ______ रोहन ______ घर जाने ______ माँ ______ मना किया।", eng:"Mother forbade Rahul from going to Rohan's house.", answers:["का","के","से","ने"], explanation:"राहुल का (Rahul as object), रोहन के घर (Rohan’s house), घर जाने से (from going), माँ ने (mother as doer)." },
-{ text:"दिल्ली ______ आगरा ______ जाने वाली ट्रेन ______ लुटमार हो गई।", eng:"The train from Delhi to Agra was looted.", answers:["से","को","में"], explanation:"दिल्ली से (from Delhi), आगरा को (to Agra), ट्रेन में (in train)." },
-{ text:"दुकानदार ______ एक पाँच रुपए नोट निकाला और श्रुति ______ दे दिया।", eng:"The shopkeeper took out a note and gave it to Shruti.", answers:["ने","को"], explanation:"दुकानदार ने (doer), श्रुति को (to Shruti)." },
-{ text:"राम ______  राज______ पढ़ाई अच्छी होती है।", eng:"raj's study is better than ram .", answers:["से","की"], explanation:"ram से  (comparison), राज की (raj's study)." },
-{ text:"जीव-जन्तुओं ______ दया करना हर व्यक्ति ______ धर्म है।", eng:"Kindness to animals is everyone’s duty.", answers:["पर","का"], explanation:"जीव-जन्तुओं पर (towards animals), व्यक्ति का धर्म (person’s duty)." },
-{ text:"नर्स ______ मरीज ______ दिल ______ सेवा की।", eng:"The nurse served the patient wholeheartedly.", answers:["ने","की","से"], explanation:"नर्स ने (doer), मरीज की सेवा (patient’s service), दिल से (wholeheartedly)." },
-{ text:"ईश्वर ______ कृपा ______ मेरी माँ जल्दी ठीक हो गई।", eng:"By God's grace, my mother recovered quickly.", answers:["की","से"], explanation:"ईश्वर की कृपा (God’s grace), कृपा से (because of grace)." },
-{ text:"सब्जियों ______ धोकर खाने ______ रोग नहीं होते।", eng:"Diseases don’t occur after washing vegetables before eating.", answers:["को","से"], explanation:"सब्जियों को धोकर (wash vegetables), खाने से (by eating)." },
-{ text:"लाल बाग ______ फूलों ______ सुंदरता देखते ही बनती है।", eng:"The beauty of Lal Bagh’s flowers is worth seeing.", answers:["के","की"], explanation:"लाल बाग के फूल (flowers of Lal Bagh), फूलों की सुंदरता (beauty of flowers)." },
-{ text:"मेरे मित्र ______ कुत्ता घर ______ भाग जंगल ______ छिप गया।", eng:"My friend’s dog ran from the house and hid in the jungle.", answers:["का","से","में"], explanation:"मित्र का कुत्ता (friend’s dog), घर से (from house), जंगल में (in jungle)." },
-{ text:"लीला ______ शीला ______ उसकी घड़ी वापस दे दी।", eng:"Leela returned Sheela’s watch.", answers:["ने","को"], explanation:"लीला ने (doer), शीला को (to Sheela)." },
-{ text:"बच्चों ______ आग ______ नहीं खेलना चाहिए।", eng:"Children should not play with fire.", answers:["को","से"], explanation:"बच्चों को (children should), आग से (with fire)." },
-{ text:"लक्ष्मीबाई ______ युद्ध ______ अंग्रेजों के दाँत खट्टे कर दिए।", eng:"Laxmibai defeated the British in war.", answers:["ने","में"], explanation:"लक्ष्मीबाई ने (doer), युद्ध में (in war)." },
-{ text:"हमारी गर्मी ______ छुट्टियाँ अप्रैल ______ शुरू होंगी और स्कूल जून ______ खुलेंगे।", eng:"Our summer holidays start in April and school reopens in June.", answers:["की","से","में"], explanation:"गर्मी की छुट्टियाँ (summer holidays), अप्रैल से (from April), जून में (in June)." },
-{ text:"______ भगवान, यह तुमने क्या किया?", eng:"Oh God, what have you done?", answers:["हे"], explanation:"हे भगवान (Oh God) - संबोधन कारक." },
-{ text:"______, मेरे पैसे बटुए ______ कैसे निकल गए?", eng:"Oh, how did my money slip out of my wallet?", answers:["अरे","से"], explanation:"अरे (Oh), बटुए से (from wallet)." },
-{ text:"_____, इतनी बढ़िया खबर सुनकर तुमने मेरा दिल खुश कर दिया।", eng:"Wow, hearing such good news made me happy.", answers:["वाह"], explanation:"वाह (Wow) - संबोधन कारक." }
+// All 20 questions
+let questions = [
+  { text:"राम ______ पिता ______ मृत्यु हो गई।", eng:"Ram's father passed away.", answers:["के","की"], explanation:"राम के पिता (Ram's father), पिता की मृत्यु (father's death) - संबंध कारक।" },
+  { text:"चोर ______ हथौड़े ______ ताला तोड़ा।", eng:"The thief broke the lock with a hammer.", answers:["ने","से"], explanation:"चोर ने (The thief) - कर्ता कारक। हथौड़े से (with a hammer) - करण कारक।" },
+  { text:"बीना ______ सोने ______ चूड़ियाँ चोरी हो गईं।", eng:"Bina's gold bangles were stolen.", answers:["की","की"], explanation:"बीना की (Bina's) और सोने की (of gold) - संबंध कारक।" },
+  { text:"राहुल ______ रोहन ______ घर जाने ______ माँ ______ मना किया।", eng:"Mother forbade Rahul from going home with Rohan.", answers:["को","का","से","ने"], explanation:"राहुल को (to Rahul) - कर्म कारक। रोहन के (with Rohan - implied accompaniment)। घर जाने से (from going home) - अपादान कारक। माँ ने (Mother) - कर्ता कारक।" },
+  { text:"दिल्ली ______ आगरा ______ जाने वाली ट्रेन ______ लुटमार हो गई।", eng:"The train going from Delhi to Agra was looted.", answers:["से","को","में"], explanation:"दिल्ली से (from Delhi) - अपादान कारक। आगरा को (to Agra) - कर्म/संप्रदान कारक। ट्रेन में (in the train) - अधिकरण कारक।" },
+  { text:"दुकानदार ______ एक पाँच रुपए नोट निकाला और श्रुति ______ दे दिया।", eng:"The shopkeeper took out five notes and gave them to Shruti.", answers:["ने","को"], explanation:"दुकानदार ने (The shopkeeper) - कर्ता कारक। श्रुति को (to Shruti) - संप्रदान कारक।" },
+  { text:"दिन ______ अधिक रात ______ पढ़ाई अच्छी होती है।", eng:"Studying is good during the day until late at night.", answers:["से","में"], explanation:"दिन में (in the day) - अधिकरण कारक। (तक is a postposition meaning 'until')." },
+  { text:"जीव-जन्तुओं ______ दया करना हर व्यक्ति ______ धर्म है।", eng:"Showing kindness to animals is the duty of every person.", answers:["पर","का"], explanation:"जीव-जन्तुओं पर (on/to animals) - अधिकरण कारक। व्यक्ति का धर्म (person's duty) - संबंध कारक।" },
+  { text:"नर्स ______ मरीज ______ दिल ______ सेवा की।", eng:"The nurse served the patient wholeheartedly.", answers:["ने","की","से"], explanation:"नर्स ने (The nurse) - कर्ता कारक। मरीज की (patient's) - संबंध कारक। दिल से (from the heart/wholeheartedly) - करण कारक।" },
+  { text:"ईश्वर ______ कृपा ______ मेरी माँ जल्दी ठीक हो गई।", eng:"By God's grace, my mother recovered quickly.", answers:["की","से"], explanation:"ईश्वर की कृपा (God's grace) - संबंध कारक। कृपा से (by grace) - करण कारक।" },
+  { text:"सब्जियों ______ धोकर खाने ______ रोग नहीं होते।", eng:"Diseases don't occur from eating vegetables after washing them.", answers:["को","से"], explanation:"सब्जियों को धोकर (washing the vegetables) - कर्म कारक। खाने से (from eating) - अपादान/करण कारक।" },
+  { text:"लाल बाग ______ फूलों ______ सुंदरता देखते ही बनती है।", eng:"The beauty of the flowers in Lal Bagh is worth seeing.", answers:["के","की"], explanation:"लाल बाग के फूल (flowers of Lal Bagh) और फूलों की सुंदरता (beauty of flowers) - संबंध कारक।" },
+  { text:"मेरे मित्र ______ कुत्ता घर ______ भाग जंगल ______ छिप गया।", eng:"My friend's dog ran from the house and hid in the jungle.", answers:["का","से","में"], explanation:"मित्र का कुत्ता (friend's dog) - संबंध कारक। घर से (from the house) - अपादान कारक। जंगल में (in the jungle) - अधिकरण कारक।" },
+  { text:"लीला ______ शीला ______ उसकी घड़ी वापस दे दी।", eng:"Leela returned her watch to Sheela.", answers:["ने","को"], explanation:"लीला ने (Leela) - कर्ता कारक। शीला को (to Sheela) - संप्रदान कारक।" },
+  { text:"बच्चों ______ आग ______ नहीं खेलना चाहिए।", eng:"Children should not play with fire.", answers:["को","से"], explanation:"बच्चों को (children should) - कर्म कारक। आग से (with fire) - करण कारक।" },
+  { text:"लक्ष्मीबाई ______ युद्ध ______ अंग्रेजों के दाँत खट्टे कर दिए।", eng:"Laxmibai defeated the British in the war.", answers:["ने","में"], explanation:"लक्ष्मीबाई ने (Laxmibai) - कर्ता कारक। युद्ध में (in the war) - अधिकरण कारक।" },
+  { text:"हमारी गर्मी ______ छुट्टियाँ अप्रैल ______ शुरू होंगी और स्कूल जून ______ खुलेंगे।", eng:"Our summer holidays will begin in April and school will reopen in June.", answers:["की","में","में"], explanation:"गर्मी की छुट्टियाँ (summer holidays) - संबंध कारक। अप्रैल में/जून में (in April/June) - अधिकरण कारक।" },
+  { text:"______ भगवान, यह तुमने क्या किया?", eng:"hey God, what have you done?", answers:["हे"], explanation:"हे भगवान (Oh God) - संबोधन कारक।" },
+  { text:"______, मेरे पैसे बटुए ______ कैसे निकल गए?", eng:"Oh, how did my money get out of the wallet?", answers:["अरे","से"], explanation:"अरे (Oh) - संबोधन कारक। बटुए से (out of the wallet) - अपादान कारक।" },
+  { text:"_____, इतनी बढ़िया खबर सुनकर तुमने मेरा दिल खुश कर दिया।", eng:"Wow, hearing such good news made me happy.", answers:["वाह"], explanation:"वाह (Wow) - संबोधन कारक।" }
 ];
 
-function selectMode(mode){
-  document.getElementById("modeSelect").style.display="none";
-  if(mode==='teacher'){
-    document.getElementById("passwordDiv").style.display='block';
-  } else {
-    teacherMode=false;
-    document.getElementById("quizDiv").style.display='block';
-    loadQuiz();
-  }
-}
-
-function checkPassword(){
-  const pwd=document.getElementById("passwordInput").value;
-  teacherMode=(pwd==="teacher1234");
-  document.getElementById("passwordDiv").style.display='none';
-  document.getElementById("quizDiv").style.display='block';
-  loadQuiz();
-  if(teacherMode){ autoTest(); }
-}
-
-function shuffle(array){
-  for(let i=array.length-1;i>0;i--){
+// --- QUIZ LOGIC ---
+function shuffle(array) {
+  for (let i=array.length-1; i>0; i--) {
     const j=Math.floor(Math.random()*(i+1));
     [array[i],array[j]]=[array[j],array[i]];
   }
@@ -103,9 +116,12 @@ function loadQuiz(){
     let parts=q.text.split("______");
     let html=`<p><b>${i+1}.</b> `;
     parts.forEach((part,idx)=>{
-      html+=part;
+      html+=part.replace(/(\r\n|\n|\r)/gm, "");
       if(idx<q.answers.length){
-        html+=` <select id="q${i}_${idx}"><option value="">-- चुनें --</option>${options.map(o=>`<option value="${o}">${o}</option>`).join("")}</select>`;
+        html+=` <select id="q${i}_${idx}">
+                  <option value="">-- चुनें --</option>
+                  ${options.map(o=>`<option value="${o}">${o}</option>`).join("")}
+                </select>`;
       }
     });
     html+="</p><p style='color:#555'>("+q.eng+")</p>";
@@ -118,57 +134,59 @@ function loadQuiz(){
   document.getElementById("result").style.display="none";
 }
 
-function submitQuiz(){
-  let score=0, report="";
-  questions.forEach((q,i)=>{
-    let userAns=[], allCorrect=true;
-    q.answers.forEach((ans,idx)=>{
-      let val=document.getElementById(`q${i}_${idx}`).value||"कोई नहीं";
-      userAns.push(val);
-      if(val!==ans) allCorrect=false;
+function submitQuiz() {
+  let score = 0, report = "";
+  questions.forEach((q, i) => {
+    let userAns = [];
+    let allCorrect = true;
+    q.answers.forEach((ans, idx) => {
+      let selectElement = document.getElementById(`q${i}_${idx}`);
+      let val = selectElement ? selectElement.value : "कोई नहीं";
+      userAns.push(val || "कोई नहीं");
+      if (val !== ans) allCorrect = false;
     });
-    if(allCorrect) score++;
-    report+=`${i+1}. ${q.text}\nYour Answer: ${userAns.join(", ")}\nCorrect: ${q.answers.join(", ")}\nExplanation: ${q.explanation}\n\n`;
+
+    if (allCorrect) score++;
+
+    report += `${i+1}. ${q.text}\nYour Answer: ${userAns.join(", ")}\nCorrect Answer: ${q.answers.join(", ")}\nExplanation: ${q.explanation}\n\n`;
   });
-  document.getElementById("scoreBoard").innerText="आपका स्कोर: "+score+"/"+questions.length;
-  let resultDiv=document.getElementById("result");
-  resultDiv.style.display="block";
-  resultDiv.textContent="Report:\n\n"+report;
-  launchEmojis(score);
+
+  document.getElementById("scoreBoard").innerText = "Your Score: " + score + "/" + questions.length;
+  let resultDiv = document.getElementById("result");
+  resultDiv.style.display = "block";
+  resultDiv.innerText = "Full Report:\n\n" + report;
+
+  if (score === questions.length) launchStars();
+  else if (score > (questions.length / 2)) document.getElementById("scoreBoard").style.color = 'green';
+  else document.getElementById("scoreBoard").style.color = '#d35400';
+
+  // --- OPEN GMAIL WEB COMPOSE ---
+  sendReportByGmailWeb(report);
 }
 
-function autoTest(){
-  questions.forEach((q,i)=>{
-    q.answers.forEach((ans,idx)=>{
-      document.getElementById(`q${i}_${idx}`).value=ans;
-    });
-  });
-  submitQuiz();
+function sendReportByGmailWeb(report) {
+  const email = "yourmail@gmail.com"; // change to your email
+  const subject = "Quiz Report";
+  const body = encodeURIComponent(report);
+  const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`;
+  window.open(url, "_blank");
 }
 
-function launchEmojis(score){
-  let type="star";
-  if(score<10) type="angry";
-  else if(score<=15) type="clap";
-  for(let i=0;i<60;i++){
-    let e=document.createElement("div");
-    e.className=type;
-    e.textContent=(type==="star"?"⭐":type==="clap"?"👏":"😡");
-    e.style.left=Math.random()*100+"vw";
-    e.style.top=Math.random()*100+"vh";
-    e.style.setProperty("--x",(Math.random()*400-200)+"px");
-    e.style.setProperty("--y",(Math.random()*-400)+"px");
-    document.body.appendChild(e);
-    setTimeout(()=>e.remove(),15000);
+function launchStars(){
+  for(let i=0;i<50;i++){
+    let star=document.createElement("div");
+    star.className="star";
+    star.innerText="★";
+    star.style.left=Math.random()*window.innerWidth+"px";
+    star.style.top=Math.random()*window.innerHeight+"px";
+    star.style.setProperty("--x",(Math.random()*600-300)+"px");
+    star.style.setProperty("--y",(Math.random()*600-300)+"px");
+    document.body.appendChild(star);
+    setTimeout(()=>star.remove(),6000);
   }
 }
 
-function sendEmail(){
-  let content=document.getElementById("result").textContent;
-  let subject="Quiz Score & Report";
-  let body=encodeURIComponent(content);
-  window.location.href=`mailto:malini22venugopal@gmail.com?subject=${subject}&body=${body}`;
-}
+loadQuiz();
 </script>
 </body>
 </html>
