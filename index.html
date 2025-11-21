@@ -51,7 +51,6 @@
       border-radius: 10px;
       display: none;
       text-align: left;
-      white-space: pre-wrap;
     }
     .star {
       position: fixed;
@@ -76,7 +75,7 @@
 <script>
 const options = ["ने","के","की","से","को","में","का","पर","हे","अरे","वाह"];
 
-// All 20 questions
+// 20 questions
 let questions = [
   { text:"राम ______ पिता ______ मृत्यु हो गई।", eng:"Ram's father passed away.", answers:["के","की"], explanation:"राम के पिता (Ram's father), पिता की मृत्यु (father's death) - संबंध कारक।" },
   { text:"चोर ______ हथौड़े ______ ताला तोड़ा।", eng:"The thief broke the lock with a hammer.", answers:["ने","से"], explanation:"चोर ने (The thief) - कर्ता कारक। हथौड़े से (with a hammer) - करण कारक।" },
@@ -84,7 +83,7 @@ let questions = [
   { text:"राहुल ______ रोहन ______ घर जाने ______ माँ ______ मना किया।", eng:"Mother forbade Rahul from going home with Rohan.", answers:["को","का","से","ने"], explanation:"राहुल को (to Rahul) - कर्म कारक। रोहन के (with Rohan - implied accompaniment)। घर जाने से (from going home) - अपादान कारक। माँ ने (Mother) - कर्ता कारक।" },
   { text:"दिल्ली ______ आगरा ______ जाने वाली ट्रेन ______ लुटमार हो गई।", eng:"The train going from Delhi to Agra was looted.", answers:["से","को","में"], explanation:"दिल्ली से (from Delhi) - अपादान कारक। आगरा को (to Agra) - कर्म/संप्रदान कारक। ट्रेन में (in the train) - अधिकरण कारक।" },
   { text:"दुकानदार ______ एक पाँच रुपए नोट निकाला और श्रुति ______ दे दिया।", eng:"The shopkeeper took out five notes and gave them to Shruti.", answers:["ने","को"], explanation:"दुकानदार ने (The shopkeeper) - कर्ता कारक। श्रुति को (to Shruti) - संप्रदान कारक।" },
-  { text:"दिन ______ अधिक रात ______ पढ़ाई अच्छी होती है।", eng:"Studying is good during the day until late at night.", answers:["से","में"], explanation:"दिन में (in the day) - अधिकरण कारक। (तक is a postposition meaning 'until')." },
+  { text:"दिन ______ अधिक रात ______ पढ़ाई अच्छी होती है।", eng:"Studying is good during the day until late at night.", answers:["से","में"], explanation:"दिन में (in the day) - अधिकरण कारक।" },
   { text:"जीव-जन्तुओं ______ दया करना हर व्यक्ति ______ धर्म है।", eng:"Showing kindness to animals is the duty of every person.", answers:["पर","का"], explanation:"जीव-जन्तुओं पर (on/to animals) - अधिकरण कारक। व्यक्ति का धर्म (person's duty) - संबंध कारक।" },
   { text:"नर्स ______ मरीज ______ दिल ______ सेवा की।", eng:"The nurse served the patient wholeheartedly.", answers:["ने","की","से"], explanation:"नर्स ने (The nurse) - कर्ता कारक। मरीज की (patient's) - संबंध कारक। दिल से (from the heart/wholeheartedly) - करण कारक।" },
   { text:"ईश्वर ______ कृपा ______ मेरी माँ जल्दी ठीक हो गई।", eng:"By God's grace, my mother recovered quickly.", answers:["की","से"], explanation:"ईश्वर की कृपा (God's grace) - संबंध कारक। कृपा से (by grace) - करण कारक।" },
@@ -135,39 +134,33 @@ function loadQuiz(){
 }
 
 function submitQuiz() {
-  let score = 0, report = "";
+  let score = 0;
   questions.forEach((q, i) => {
-    let userAns = [];
     let allCorrect = true;
     q.answers.forEach((ans, idx) => {
-      let selectElement = document.getElementById(`q${i}_${idx}`);
-      let val = selectElement ? selectElement.value : "कोई नहीं";
-      userAns.push(val || "कोई नहीं");
+      let val = document.getElementById(`q${i}_${idx}`)?.value || "कोई नहीं";
       if (val !== ans) allCorrect = false;
     });
-
     if (allCorrect) score++;
-
-    report += `${i+1}. ${q.text}\nYour Answer: ${userAns.join(", ")}\nCorrect Answer: ${q.answers.join(", ")}\nExplanation: ${q.explanation}\n\n`;
   });
 
   document.getElementById("scoreBoard").innerText = "Your Score: " + score + "/" + questions.length;
   let resultDiv = document.getElementById("result");
   resultDiv.style.display = "block";
-  resultDiv.innerText = "Full Report:\n\n" + report;
+  resultDiv.innerText = "Your Score: " + score + "/" + questions.length;
 
   if (score === questions.length) launchStars();
   else if (score > (questions.length / 2)) document.getElementById("scoreBoard").style.color = 'green';
   else document.getElementById("scoreBoard").style.color = '#d35400';
 
-  // --- OPEN GMAIL WEB COMPOSE ---
-  sendReportByGmailWeb(report);
+  // --- SEND SCORE VIA GMAIL WEB ---
+  sendScoreByGmail(score);
 }
 
-function sendReportByGmailWeb(report) {
-  const email = "yourmail@gmail.com"; // change to your email
-  const subject = "Quiz Report";
-  const body = encodeURIComponent(report);
+function sendScoreByGmail(score) {
+  const email = "yourmail@gmail.com"; // replace with your email
+  const subject = "Quiz Score";
+  const body = encodeURIComponent(`I scored ${score} out of ${questions.length} in the Quiz.`);
   const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`;
   window.open(url, "_blank");
 }
