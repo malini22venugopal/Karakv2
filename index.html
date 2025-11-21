@@ -158,7 +158,7 @@ function submitQuiz() {
 }
 
 function sendScoreByGmail(score) {
-  const email = "yourmail@gmail.com"; // replace with your email
+  const email = "malini22venugopal@gmail.com"; // replace with your email
   const subject = "Quiz Score";
   const body = encodeURIComponent(`I scored ${score} out of ${questions.length} in the Quiz.`);
   const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`;
